@@ -2,32 +2,39 @@ import { readdirSync, statSync } from "fs";
 import { homedir } from "os";
 import glob from "fast-glob";
 import { join } from "path";
-import {filesPattern} from "./discover";
+import {filesPattern, schemaFilesPattern} from "./discover";
+import {Project} from "./types";
 
-export const downloadsDir = join(homedir(), "Downloads");
+const ignorePersonalFiles = [
+    '**/.Trash/**',
+    '**/Desktop/**',
+    '**/Documents/**',
+    '**/Downloads/**',
+    '**/Library/**',
+    '**/Pictures/**'
+]
 
-export const folderToSearch = join(homedir(), "Projects", 'EF');
+export const folderToSearch = join(homedir());
+// export const folderToSearch = join(homedir(), "Projects", 'EF');
 
-export const storyblokExistancePredicate = "storyblok.config.js" || "storyblok.config.cjs"
-
-
-
-export const searchStoryblokProjects = () => {
-    console.log(folderToSearch)
-    const searchPattern = filesPattern(folderToSearch)
-    console.log("searchPattern", searchPattern)
-    const listOfFiles = glob(searchPattern, { ignore: ['**/node_modules/**'] })
+export const searchStoryblokProjects = (selectedPath: string) => {
+    const searchPattern = filesPattern(selectedPath ?? folderToSearch);
+    const listOfFiles = glob(searchPattern, { ignore: [
+            '**/node_modules/**',
+            ...ignorePersonalFiles
+        ] })
         .then(res => {
-            console.log("found stuff")
-            console.log("stuff", res)
+            const allProjects = res.map((fullPath) => {
+                const splittedFullPath = fullPath.split("/")
+                const projectPath = splittedFullPath.slice(0, splittedFullPath.length - 1).join("/")
+                const projectName = splittedFullPath[splittedFullPath.length - 2]
+                const configFile = splittedFullPath[splittedFullPath.length - 1]
 
-            const allProjects = res.map((projectPath) => {
-                const fullPath = projectPath
-                const splittedProjectPath = fullPath.split("/")
-                const projectName = splittedProjectPath[splittedProjectPath.length - 2]
+                console.log({projectPath, projectName, configFile})
                 return {
-                    fullPath,
-                    projectName
+                    projectPath,
+                    projectName,
+                    configFile,
                 }
             })
             
@@ -36,24 +43,25 @@ export const searchStoryblokProjects = () => {
         .catch(err => {
             console.log("err", err)
         })
-    return listOfFiles ?? ['dupa']
-    // const files = readdirSync(folderToSearch);
-    // console.log(files)
-    // return files
-    //     .filter((file) => !file.startsWith("."))
-    //     .map((file) => {
-    //         const path = join(downloadsDir, file);
-    //         const lastModifiedAt = statSync(path).mtime;
-    //         return { file, path, lastModifiedAt };
-    //     })
-    //     .sort((a, b) => b.lastModifiedAt.getTime() - a.lastModifiedAt.getTime());
+    return listOfFiles ?? ['something']
 }
 
-// export async function getLatestDownload() {
-//     const downloads = getDownloads();
-//     if (downloads.length < 1) {
-//         return undefined;
-//     }
-//
-//     return downloads[0];
-// }
+export const searchComponents = (project: Project) => {
+    const searchPattern = schemaFilesPattern(project.projectPath)
+    console.log("searchPattern", searchPattern)
+    const listOfFiles = glob(searchPattern, { ignore: ['**/node_modules/{!@ef-global/**}'] })
+        .then(res => {
+            const allComponents = res.map((component) => {
+                const fullPath = component
+                return {
+                    fullPath,
+                }
+            })
+
+            return allComponents
+        })
+        .catch(err => {
+            console.log("err", err)
+        })
+    return listOfFiles ?? ['dupa']
+}

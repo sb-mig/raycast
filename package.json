@@ -1,9 +1,9 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
   "name": "sb-mig-raycast-helper",
-  "title": "sb-mig raycast helper",
+  "title": "sb-mig interface for Raycast",
   "description": "sb-mig interface for raycast",
-  "icon": "command-icon.png",
+  "icon": "sb-mig.png",
   "author": "marckraw",
   "categories": [
     "Developer Tools"
@@ -13,7 +13,7 @@
     {
       "name": "sb-mig",
       "title": "sb-mig",
-      "description": "",
+      "description": "sb-mig interface for raycast",
       "mode": "view"
     }
   ],
