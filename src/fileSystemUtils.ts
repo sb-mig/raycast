@@ -1,4 +1,4 @@
-import { readdirSync, statSync } from "fs";
+import { promises, readdirSync, statSync } from "fs";
 import { homedir } from "os";
 import glob from "fast-glob";
 import { join } from "path";
@@ -16,6 +16,29 @@ const ignorePersonalFiles = [
 
 export const folderToSearch = join(homedir());
 // export const folderToSearch = join(homedir(), "Projects", 'EF');
+
+const hasToExist = (item: any) => item[0] && item[1]
+
+export const getFileContentAsObject = async (pathToFile: string) => {
+    try {
+        const dataFromFile = await promises.readFile(pathToFile, {encoding: 'utf-8', flag: 'r'})
+
+        return dataFromFile
+            .split('\n')
+            .map(line => line.split('='))
+            .filter(hasToExist)
+            .reduce((acc, next) => {
+                return {
+                    ...acc,
+                    [next[0]]: next[1]
+                }
+            }, {})
+    } catch (e) {
+        console.log("There is a problem reading file (probably not existing)")
+        console.log(e)
+        return {}
+    }
+}
 
 export const searchStoryblokProjects = (selectedPath: string) => {
     const searchPattern = filesPattern(selectedPath ?? folderToSearch);

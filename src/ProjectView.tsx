@@ -4,17 +4,12 @@ import {pkg} from 'sb-mig/dist/utils/pkg-require.js';
 import {defaultConfig, getStoryblokConfigContent} from 'sb-mig/dist/config/helper.js';
 import {FC, useEffect, useState} from "react";
 import type {Project} from "./types";
+import {getFileContentAsObject} from "./fileSystemUtils";
 
-const getEnvForProject = (path: string) => {
+const getEnvForProject = async (path: string) => {
     const envPath = `${path}/.env`;
 
-    // here we need to read file, and then on any readline parse it to object
-
-    return {
-        NEXT_PUBLIC_STORYBLOK_ACCESS_TOKEN: '36rftrjxFnHMBHUbjSPuPQtt',
-        STORYBLOK_SPACE_ID: '183472',
-        STORYBLOK_OAUTH_TOKEN: 'A9T81cyOo3Ruym1C69cmWAtt-57603-TCKLvDb1hGFLHVYr6-SY'
-    }
+    return await getFileContentAsObject(envPath)
 }
 
 const ProjectView: FC<{ project: Project }> = (props) => {
@@ -32,9 +27,10 @@ const ProjectView: FC<{ project: Project }> = (props) => {
             const filePath = `${project.projectPath}/${file}`
 
             const customConfig = await getStoryblokConfigContent({filePath, ext: `.${ext}`})
+            const env = await getEnvForProject(project.projectPath)
 
-
-            const env = getEnvForProject(project.projectPath)
+            console.log("this is env")
+            console.log(env)
 
             const {spaceId, oauthToken, accessToken, ...restCustomConfig} = customConfig
 
