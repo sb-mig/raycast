@@ -19,7 +19,7 @@ export const folderToSearch = join(homedir());
 
 const hasToExist = (item: any) => item[0] && item[1]
 
-export const getFileContentAsObject = async (pathToFile: string) => {
+const getFileContentAsObject = async (pathToFile: string) => {
     try {
         const dataFromFile = await promises.readFile(pathToFile, {encoding: 'utf-8', flag: 'r'})
 
@@ -38,6 +38,12 @@ export const getFileContentAsObject = async (pathToFile: string) => {
         console.log(e)
         return {}
     }
+}
+
+export const getEnvForProject = async (path: string) => {
+    const envPath = `${path}/.env`;
+
+    return await getFileContentAsObject(envPath)
 }
 
 export const searchStoryblokProjects = (selectedPath: string) => {

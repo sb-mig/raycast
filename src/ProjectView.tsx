@@ -4,13 +4,7 @@ import {pkg} from 'sb-mig/dist/utils/pkg-require.js';
 import {defaultConfig, getStoryblokConfigContent} from 'sb-mig/dist/config/helper.js';
 import {FC, useEffect, useState} from "react";
 import type {Project} from "./types";
-import {getFileContentAsObject} from "./fileSystemUtils";
-
-const getEnvForProject = async (path: string) => {
-    const envPath = `${path}/.env`;
-
-    return await getFileContentAsObject(envPath)
-}
+import {getEnvForProject} from "./fileSystemUtils";
 
 const ProjectView: FC<{ project: Project }> = (props) => {
     const {project} = props;
@@ -27,24 +21,20 @@ const ProjectView: FC<{ project: Project }> = (props) => {
             const filePath = `${project.projectPath}/${file}`
 
             const customConfig = await getStoryblokConfigContent({filePath, ext: `.${ext}`})
+            const packageJsonData = pkg(`${project.projectPath}/package.json`)
+            console.log("packageJsonData", packageJsonData)
             const env = await getEnvForProject(project.projectPath)
-
-            console.log("this is env")
-            console.log(env)
 
             const {spaceId, oauthToken, accessToken, ...restCustomConfig} = customConfig
 
-            const temp = {
+            setProjectWithPackage({
                 ...project,
+                repoUrl: packageJsonData.repository ? packageJsonData.repository?.url : undefined,
                 config: {
                     ...defaultConfig(pkg, `${project.projectPath}`, env),
                     ...restCustomConfig
                 }
-            }
-            console.log("changed ?")
-            console.log(temp)
-
-            setProjectWithPackage(temp)
+            })
             setLoading(false)
         })()
     }, [project.projectName, project.projectPath])
@@ -67,7 +57,9 @@ const ProjectView: FC<{ project: Project }> = (props) => {
                         <Detail.Metadata.TagList.Item text={projectWithPackage.config.oauthToken} color={"#eed535"} />
                     </Detail.Metadata.TagList>
                     <Detail.Metadata.Separator />
-                    <Detail.Metadata.Link title="Github" target="https://github.com/ef-global/backpack" text="Github" />
+                    {
+                        projectWithPackage.repoUrl && <Detail.Metadata.Link title="Github" target={projectWithPackage.repoUrl} text="Github" />
+                    }
                 </Detail.Metadata>
             }
         />
